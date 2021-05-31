@@ -1,5 +1,4 @@
-The MIT License (MIT)
-
+/*
 Copyright © 2021 Britton Hayes
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -19,3 +18,39 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
+*/
+package cmd
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+
+	"github.com/brittonhayes/homie/pkg/parse"
+	"github.com/brittonhayes/homie/pkg/setup"
+	"github.com/spf13/cobra"
+)
+
+// listCmd represents the list command
+var listCmd = &cobra.Command{
+	Use:   "list",
+	Short: "List out homes from sheet",
+	Run: func(cmd *cobra.Command, args []string) {
+		s, err := setup.Client("", "Listings")
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		listings := parse.Listings(s)
+		bytes, err := json.MarshalIndent(listings, "", "\t")
+		if err != nil {
+			return
+		}
+
+		fmt.Println(string(bytes))
+	},
+}
+
+func init() {
+	rootCmd.AddCommand(listCmd)
+}
