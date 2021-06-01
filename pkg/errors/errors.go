@@ -10,9 +10,9 @@ const (
 	ErrStackBot = errors.Sentinel("Bot command parsing error")
 )
 
-func withBotStack() error {
-	return errors.WithStack(ErrStackBot)
-}
+// func withBotStack() error {
+// 	return errors.WithStack(ErrStackBot)
+// }
 
 func WithBot(err error) error {
 	logrus.Error(err)
