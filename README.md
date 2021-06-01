@@ -16,6 +16,24 @@ go get github.com/brittonhayes/homie/homie
 homie bot --config ./.homie.yaml
 ```
 
+## Config
+
+```yaml
+# .homie.yaml
+telegram:
+  token: "12345"
+  allowed:
+    - MyUserName
+
+google:
+  secrets: "client_secret.json"
+  sheet:
+    id: "12345"
+    header_row: 5
+    title: "Listings"
+
+```
+
 ### Development
 
 > Add more commands by appending the commands array.
