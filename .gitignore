@@ -1,4 +1,4 @@
 *.json
 *.env
 .idea
-.homie.yaml
+*.yaml
