@@ -2,6 +2,8 @@ package parse
 
 import (
 	"github.com/Iwark/spreadsheet"
+	"github.com/adrg/strutil"
+	"github.com/adrg/strutil/metrics"
 )
 
 const (
@@ -10,7 +12,7 @@ const (
 	Bed
 	Bath
 	SqFt
-	Pet
+	Pets
 	Rent
 	RelativeToBudget
 	Status
@@ -25,7 +27,7 @@ type Listing struct {
 	Bed              string `json:"bed"`
 	Bath             string `json:"bath"`
 	SqFt             string `json:"sq_ft"`
-	Pet              string `json:"pet"`
+	Pets             string `json:"pets"`
 	Rent             string `json:"rent"`
 	RelativeToBudget string `json:"relative_to_budget"`
 	Status           string `json:"status"`
@@ -38,10 +40,21 @@ func cell(row []spreadsheet.Cell, cell int) string {
 	return row[cell].Value
 }
 
-func Listings(s *spreadsheet.Sheet) []Listing {
+func SimilarListings(listings []Listing, comparison string, similarityLevel float64) []Listing {
+	var similar []Listing
+	for _, listing := range listings {
+		if strutil.Similarity(listing.Address, comparison, metrics.NewHamming()) >= similarityLevel {
+			similar = append(similar, listing)
+		}
+	}
+
+	return similar
+}
+
+func Listings(s *spreadsheet.Sheet, header int) []Listing {
 	var listings []Listing
 	for i, row := range s.Rows {
-		if i > 4 && cell(row, 0) != "" {
+		if i > header && cell(row, Address) != "" {
 			listings = append(listings,
 				Listing{
 					Address:          cell(row, Address),
@@ -49,7 +62,7 @@ func Listings(s *spreadsheet.Sheet) []Listing {
 					Bed:              cell(row, Bed),
 					Bath:             cell(row, Bath),
 					SqFt:             cell(row, SqFt),
-					Pet:              cell(row, SqFt),
+					Pets:             cell(row, Pets),
 					Rent:             cell(row, Rent),
 					RelativeToBudget: cell(row, RelativeToBudget),
 					Status:           cell(row, Status),
