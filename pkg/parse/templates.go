@@ -18,6 +18,7 @@ func Template() (*template.Template, error) {
 📏	SqFt:		{{.SqFt}}
 🐕	Pets:		{{.Pets}}
 🚦	Status:		{{.Status}}
+🤏	Budget:		{{.RelativeToBudget}}
 🔗 	Link:		{{.Link}}
 🗺️	Map:		https://www.google.com/maps/search/?api=1&query={{ nospace .Address }}
 
