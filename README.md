@@ -34,7 +34,7 @@ google:
 
 ```
 
-### Development
+## Development
 
 > Add more commands by appending the commands array.
 
