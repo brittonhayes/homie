@@ -15,3 +15,40 @@ go get github.com/brittonhayes/homie/homie
 ## Start the bot
 homie bot --config ./.homie.yaml
 ```
+
+### Development
+
+> Add more commands by appending the commands array.
+
+```go
+
+// All commands are of type `CommandFunc func(*tg.Message, config.Configuration) string`
+
+var botCmd = &cobra.Command{
+	Use:   "bot",
+	Short: "Start the telegram bot",
+	Run: func(cmd *cobra.Command, args []string) {
+		ctx, cancelFunc := context.WithCancel(context.Background())
+		defer cancelFunc()
+
+		commands := []bot.Command{
+			bot.NewCommand("address", bot.Address),
+			bot.NewCommand("status", bot.Status),
+			bot.NewCommand("hi", bot.Hi),
+			bot.NewCommand("help", bot.Help),
+		}
+
+		go func() {
+			err := bot.RunWithAllowlist(ctx, viper.GetString("telegram.token"), commands, viper.GetStringSlice("telegram.allowed"))
+			if err != nil {
+				log.Fatalln(err)
+			}
+		}()
+
+		logrus.Info("Bot started")
+		<-ctx.Done()
+
+		logrus.Info("Bot shutting down")
+	},
+}
+```
