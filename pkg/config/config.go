@@ -12,6 +12,7 @@ type Configuration struct {
 			ID        string
 			HeaderRow int
 			Title     string
+			Link      string
 		}
 	}
 	Telegram struct {

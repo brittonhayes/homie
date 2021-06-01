@@ -14,6 +14,13 @@ go get github.com/brittonhayes/homie/homie
 ```shell
 ## Start the bot
 homie bot --config ./.homie.yaml
+
+Available Commands:
+  bot         Start the telegram bot
+  help        Help about any command
+  list        List out homes from sheet
+  sheet       Get info about the google sheet
+
 ```
 
 ## Config
