@@ -1,0 +1,15 @@
+Looks like something similar is already in the google sheet! ✅
+
+{{range .}}
+    🏡	Address: 	{{.Address}}
+    🏙️	City:		{{.City}}
+    💸	Rent:		{{.Rent}}
+    🛏️	Bed:		{{.Bed}}
+    🛀	Bath:		{{.Bath}}
+    📏	SqFt:		{{.SqFt}}
+    🐕	Pets:		{{.Pets}}
+    🚦	Status:		{{.Status}}
+    🤏	Budget:		{{.RelativeToBudget}}
+    🔗 	Link:		{{.Link}}
+    🗺️	Map:		https://www.google.com/maps/search/?api=1&query={{ nospace .Address }}
+{{end}}

@@ -19,23 +19,28 @@ var botCmd = &cobra.Command{
 		ctx, cancelFunc := context.WithCancel(context.Background())
 		defer cancelFunc()
 
+		// Initialize commands
 		commands := []bot.Command{
 			bot.NewCommand("address", bot.Address),
 			bot.NewCommand("status", bot.Status),
 			bot.NewCommand("hi", bot.Hi),
 			bot.NewCommand("help", bot.Help),
+			bot.NewCommand("contacted", bot.Contacted),
+			bot.NewCommand("goodnight", bot.Goodnight),
 		}
 
+		// Start up bot in a goroutine
 		go func() {
 			err := bot.RunWithAllowlist(ctx, viper.GetString("telegram.token"), commands, viper.GetStringSlice("telegram.allowed"))
 			if err != nil {
 				log.Fatalln(err)
 			}
 		}()
-
 		logrus.Info("Bot started")
-		<-ctx.Done()
 
+		// Await context completion
+		// before shutting down
+		<-ctx.Done()
 		logrus.Info("Bot shutting down")
 	},
 }

@@ -4,6 +4,9 @@ import (
 	"github.com/Iwark/spreadsheet"
 	"github.com/adrg/strutil"
 	"github.com/adrg/strutil/metrics"
+	"github.com/brittonhayes/homie/pkg/config"
+	"github.com/brittonhayes/homie/pkg/setup"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -20,6 +23,21 @@ const (
 	Link
 	MapLink
 )
+
+type Service struct {
+	Sheet  *spreadsheet.Sheet
+	Config config.Configuration
+}
+
+func New(c config.Configuration) (*Service, error) {
+	s, err := setup.Client(c.Google.Secrets, c.Google.Sheet.ID, c.Google.Sheet.Title)
+	if err != nil {
+		logrus.Error("failed to setup client", err)
+		return nil, err
+	}
+
+	return &Service{Sheet: s, Config: c}, nil
+}
 
 type Listing struct {
 	Address          string `json:"address"`
@@ -40,7 +58,7 @@ func cell(row []spreadsheet.Cell, cell int) string {
 	return row[cell].Value
 }
 
-func SimilarListings(listings []Listing, comparison string, similarityLevel float64) []Listing {
+func (s *Service) SimilarListings(listings []Listing, comparison string, similarityLevel float64) []Listing {
 	var similar []Listing
 	for _, listing := range listings {
 		if strutil.Similarity(listing.Address, comparison, metrics.NewHamming()) >= similarityLevel {
@@ -51,9 +69,9 @@ func SimilarListings(listings []Listing, comparison string, similarityLevel floa
 	return similar
 }
 
-func Listings(s *spreadsheet.Sheet, header int) []Listing {
+func (s *Service) Listings(header int) []Listing {
 	var listings []Listing
-	for i, row := range s.Rows {
+	for i, row := range s.Sheet.Rows {
 		if i > header && cell(row, Address) != "" {
 			listings = append(listings,
 				Listing{

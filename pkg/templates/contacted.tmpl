@@ -1,0 +1,6 @@
+You've contacted or applied to {{ len . }} properties!
+
+{{ range .}}
+    🚦    Status: {{ if eq .Status "Contacted" }}{{.Status}} ☎️{{else if eq .Status "Applied" }}{{.Status}} 📨{{end}}
+    🏡    Address: {{.Address}}
+{{end}}

@@ -46,34 +46,25 @@ google:
 > Add more commands by appending the commands array.
 
 ```go
-
 // All commands are of type `CommandFunc func(*tg.Message, config.Configuration) string`
+commands := []bot.Command{
+    bot.NewCommand("address", bot.Address),
+    bot.NewCommand("status", bot.Status),
+    bot.NewCommand("hi", bot.Hi),
+    bot.NewCommand("help", bot.Help),
+    bot.NewCommand("goodnight", bot.Goodnight)
+}
+```
 
-var botCmd = &cobra.Command{
-	Use:   "bot",
-	Short: "Start the telegram bot",
-	Run: func(cmd *cobra.Command, args []string) {
-		ctx, cancelFunc := context.WithCancel(context.Background())
-		defer cancelFunc()
+```go
+// Example commands that will make the bot go to sleep
+func Goodnight(received *tg.Message, c config.Configuration) string {
+	go func() {
+		time.Sleep(5 * time.Second)
+		logrus.Infof("Going to sleep now!")
+		os.Exit(1)
+	}()
 
-		commands := []bot.Command{
-			bot.NewCommand("address", bot.Address),
-			bot.NewCommand("status", bot.Status),
-			bot.NewCommand("hi", bot.Hi),
-			bot.NewCommand("help", bot.Help),
-		}
-
-		go func() {
-			err := bot.RunWithAllowlist(ctx, viper.GetString("telegram.token"), commands, viper.GetStringSlice("telegram.allowed"))
-			if err != nil {
-				log.Fatalln(err)
-			}
-		}()
-
-		logrus.Info("Bot started")
-		<-ctx.Done()
-
-		logrus.Info("Bot shutting down")
-	},
+	return "Have a good one! I'm clocking out for the evening. \nhttps://media.tenor.com/images/df51877535a3e38c9cccd2f23ff154a2/tenor.gif"
 }
 ```

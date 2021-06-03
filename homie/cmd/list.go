@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/brittonhayes/homie/pkg/config"
 	"github.com/brittonhayes/homie/pkg/parse"
-	"github.com/brittonhayes/homie/pkg/setup"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -16,12 +16,18 @@ var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List out homes from sheet",
 	Run: func(cmd *cobra.Command, args []string) {
-		s, err := setup.Client(viper.GetString("google.secrets"), viper.GetString("google.sheet.id"), viper.GetString("google.sheet.title"))
+		c, err := config.LoadConfig(".")
 		if err != nil {
 			log.Fatalln(err)
 		}
 
-		listings := parse.Listings(s, viper.GetInt("google.sheet.header_row"))
+		p, err := parse.New(c)
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		// Fetch listings from the sheet
+		listings := p.Listings(c.Google.Sheet.HeaderRow)
 		b, err := json.MarshalIndent(listings, "", "\t")
 		fmt.Println(string(b))
 	},

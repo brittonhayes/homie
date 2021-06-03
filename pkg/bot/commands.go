@@ -1,21 +1,21 @@
 package bot
 
 import (
-	"bytes"
 	"fmt"
+	"os"
+	"time"
 
 	"github.com/brittonhayes/homie/pkg/config"
 	"github.com/brittonhayes/homie/pkg/parse"
-	"github.com/brittonhayes/homie/pkg/setup"
+	"github.com/brittonhayes/homie/pkg/templates"
 	tg "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/sirupsen/logrus"
 )
 
 const (
-	MsgHousePresent       = "\nLooks like something similar is already in the google sheet! ✅\n\n%s"
 	MsgHouseNotPresent    = "Hmmm... couldn't find that one in the sheet 🤔"
-	ErrCommandUnknown     = "I don't know that command. Sorry ☹️"
 	ErrSomethingWentWrong = "Uh oh. Looks like something went wrong in my wiring!"
+	ErrFailedTemplate     = "failed to execute template"
 )
 
 func Status(received *tg.Message, c config.Configuration) string {
@@ -23,39 +23,75 @@ func Status(received *tg.Message, c config.Configuration) string {
 	return "I'm doin' well! 🎉"
 }
 
-func Hi(received *tg.Message, c config.Configuration) string {
+func Hi(received *tg.Message, _ config.Configuration) string {
 	return fmt.Sprintf("Hey %s 👋", received.From.FirstName)
 }
 
-func Help(received *tg.Message, c config.Configuration) string {
+func Help(*tg.Message, config.Configuration) string {
 	return "I understand /hi, /status, and /address"
 }
 
 func Address(received *tg.Message, c config.Configuration) string {
-	s, err := setup.Client(c.Google.Secrets, c.Google.Sheet.ID, c.Google.Sheet.Title)
+	p, err := parse.New(c)
 	if err != nil {
 		logrus.Error("failed to setup client", err)
 		return ErrSomethingWentWrong
 	}
 
-	listings := parse.Listings(s, c.Google.Sheet.HeaderRow)
-	similar := parse.SimilarListings(listings, received.CommandArguments(), 0.5)
+	// Fetch listings from the sheet
+	listings := p.Listings(c.Google.Sheet.HeaderRow)
+
+	// Look for listings similar to the user's message
+	similar := p.SimilarListings(listings, received.CommandArguments(), 0.5)
+
 	logrus.Infof("Parsed listings and found %d similar results", len(similar))
 	if len(similar) == 0 {
 		return MsgHouseNotPresent
 	}
 
-	t, err := parse.Template()
+	// Create the listing template
+	b, err := templates.Render(templates.Listings, similar)
 	if err != nil {
-		logrus.Error("failed to execute template", err)
+		logrus.Error(ErrFailedTemplate, err)
 		return ErrSomethingWentWrong
 	}
 
-	var tpl bytes.Buffer
-	if err := t.Execute(&tpl, similar); err != nil {
-		logrus.Error("failed to execute template", err)
+	return b.String()
+}
+
+func Goodnight(received *tg.Message, c config.Configuration) string {
+	go func() {
+		time.Sleep(5 * time.Second)
+		logrus.Infof("Going to sleep now!")
+		os.Exit(1)
+	}()
+
+	return "Have a good one! I'm clocking out for the evening. \nhttps://media.tenor.com/images/df51877535a3e38c9cccd2f23ff154a2/tenor.gif"
+}
+
+func Contacted(received *tg.Message, c config.Configuration) string {
+	p, err := parse.New(c)
+	if err != nil {
+		logrus.Error("failed to setup client", err)
 		return ErrSomethingWentWrong
 	}
 
-	return tpl.String()
+	// Fetch listings from the sheet
+	listings := p.Listings(c.Google.Sheet.HeaderRow)
+
+	var contacted []parse.Listing
+	for _, l := range listings {
+		if l.Status == "Contacted" || l.Status == "Applied" {
+			contacted = append(contacted, l)
+		}
+	}
+
+	// Create the listing template
+	b, err := templates.Render(templates.Contacted, contacted)
+	if err != nil {
+		logrus.Error(ErrFailedTemplate, err)
+		return ErrSomethingWentWrong
+	}
+
+	return b.String()
 }
